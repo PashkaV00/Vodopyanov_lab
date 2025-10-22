@@ -2,304 +2,304 @@
 #include <fstream>
 #include <string>
 #include <windows.h>
-#include <vector>
+
 using namespace std;
 
-// Данные о трубе
+// Структура для хранения данных о трубе
 struct Pipe {
-    string km_mark = "";        // Километровая отметка
-    double length = 0.0;         // Длина
-    int diameter = 0;            // Диаметр 
-    bool under_repair = false;   // В ремонте или нет
+    string name;
+    double length;
+    int diameter;
+    bool inRepair;
 
-    void input() {
-        cout << "Введите километровую отметку: ";
-        cin >> km_mark;
-
-        cout << "Введите длину (км): ";
-        while (!(cin >> length) || length <= 0) {
-            cout << "Ошибка! Введите положительное число: ";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-
-        cout << "Введите диаметр (мм): ";
-        while (!(cin >> diameter) || diameter <= 0) {
-            cout << "Ошибка! Введите положительное число: ";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-
-        string repair_input;
-        while (true) {
-            cout << "Труба в ремонте? (да/нет): ";
-            cin >> repair_input;
-
-            if (repair_input == "да") {
-                under_repair = true;
-                break;
-            }
-            else if (repair_input == "нет") {
-                under_repair = false;
-                break;
-            }
-            else {
-                cout << "Ошибка! Введите только 'да' или 'нет'" << endl;
-            }
-        }
-    }
-
-    void display() const {
-        cout << "Труба: " << km_mark << ", " << length << "км, "
-            << diameter << "мм, статус: " << (under_repair ? "в ремонте" : "работает") << endl;
-    }
+    Pipe() : name(""), length(0.0), diameter(0), inRepair(false) {}
 };
 
-// Данные кс
+// Хранения данных о компрессорной станции
 struct CompressorStation {
-    string name = "";                // Название станции
-    int total_workshops = 0;         // Общее количество цехов
-    int working_workshops = 0;       // Количество цехов в работе
-    int efficiency_class = 0;        // Класс эффективности станции
+    string name;
+    int numberWorkshop;
+    int workingWorkshop;
+    int classWorkshop;
 
-    void input() {
-        cout << "Введите название: ";
-        cin >> name;
-
-        cout << "Введите общее количество цехов: ";
-        while (!(cin >> total_workshops) || total_workshops <= 0) {
-            cout << "Ошибка! Введите положительное число: ";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-
-        do {
-            cout << "Введите количество работающих цехов: ";
-            // Проверка что введено число и оно неотрицательное
-            while (!(cin >> working_workshops) || working_workshops < 0) {
-                cout << "Ошибка! Введите неотрицательное число: ";
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
-
-            // Проверка что работающих цехов не больше общего количества
-            if (working_workshops > total_workshops) {
-                cout << "Ошибка: работающих цехов не может быть больше общего количества!" << endl;
-            }
-        } while (working_workshops > total_workshops);
-
-        cout << "Введите класс эффективности: ";
-        while (!(cin >> efficiency_class) || efficiency_class <= 0) {
-            cout << "Ошибка! Введите положительное число: ";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    }
-
-    void display() const {
-        cout << "КС: " << name << ", цехи: " << working_workshops
-            << "/" << total_workshops << ", класс: " << efficiency_class << endl;
-    }
+    CompressorStation() : name(""), numberWorkshop(0), workingWorkshop(0), classWorkshop(0) {}
 };
 
-// Функция для сохранения всех данных в файл
-void saveToFile(const vector<Pipe>& pipes, const vector<CompressorStation>& stations) {
-    ofstream file("data.txt");
-    if (file.is_open()) {
-        // Сохраняем количество труб
-        file << pipes.size() << endl;
-        // Сохраняем данные каждой трубы
-        for (const auto& pipe : pipes) {
-            file << pipe.km_mark << endl << pipe.length << endl << pipe.diameter
-                << endl << pipe.under_repair << endl;
-        }
-
-        // Сохраняем количество КС
-        file << stations.size() << endl;
-        // Сохраняем данные каждой КС
-        for (const auto& station : stations) {
-            file << station.name << endl << station.total_workshops << endl
-                << station.working_workshops << endl << station.efficiency_class << endl;
-        }
-        file.close();
-        cout << "Данные успешно сохранены!" << endl;
-    }
-    else {
-        cout << "Ошибка сохранения файла!" << endl;
-    }
-}
-
-// Функция для загрузки всех данных из файла
-void loadFromFile(vector<Pipe>& pipes, vector<CompressorStation>& stations) {
-    ifstream file("data.txt");
-    if (file.is_open()) {
-        // Загружаем количество труб
-        int pipeCount;
-        file >> pipeCount;
-        pipes.resize(pipeCount);
-        // Загружаем данные каждой трубы
-        for (int i = 0; i < pipeCount; i++) {
-            file >> pipes[i].km_mark >> pipes[i].length >> pipes[i].diameter >> pipes[i].under_repair;
-        }
-
-        // Загружаем количество КС
-        int stationCount;
-        file >> stationCount;
-        stations.resize(stationCount);
-        // Загружаем данные каждой КС
-        for (int i = 0; i < stationCount; i++) {
-            file >> stations[i].name >> stations[i].total_workshops
-                >> stations[i].working_workshops >> stations[i].efficiency_class;
-        }
-        file.close();
-        cout << "Данные успешно загружены!" << endl;
-    }
-    else {
-        cout << "Ошибка загрузки файла!" << endl;
-    }
-}
-
-// Функция для выбора трубы из списка
-int selectPipe(const vector<Pipe>& pipes) {
-    if (pipes.empty()) {
-        cout << "Нет доступных труб!" << endl;
-        return -1;
+// Функция для ввода данных о трубе
+void input_pipe(Pipe& pipe) {
+    cout << "Название трубы: ";
+    getline(cin >> ws, pipe.name);
+    while (pipe.name.empty()) {
+        cout << "Ошибка: название не может быть пустым: ";
+        getline(cin, pipe.name);
     }
 
-    cout << "Список труб:" << endl;
-    for (int i = 0; i < pipes.size(); i++) {
-        cout << i + 1 << ". ";
-        pipes[i].display();
-    }
-
-    int choice;
-    cout << "Выберите трубу для редактирования (1-" << pipes.size() << "): ";
-    while (!(cin >> choice) || choice < 1 || choice > pipes.size()) {
-        cout << "Неверный выбор! Введите число от 1 до " << pipes.size() << ": ";
+    cout << "Длина: ";
+    // Проверка корректности ввода длины
+    while (!(cin >> pipe.length) || (pipe.length < 0) || (cin.peek() != '\n')) {
+        cout << "Ошибка: введите положительное число: ";
         cin.clear();
-        cin.ignore(10000, '\n');
+        cin.ignore(100, '\n');
     }
 
-    return choice - 1;  // Возвращаем индекс выбранной трубы
-}
-
-// Функция для выбора КС из списка
-int selectStation(const vector<CompressorStation>& stations) {
-    if (stations.empty()) {
-        cout << "Нет доступных КС!" << endl;
-        return -1;
-    }
-
-    cout << "Список КС:" << endl;
-    for (int i = 0; i < stations.size(); i++) {
-        cout << i + 1 << ". ";
-        stations[i].display();
-    }
-
-    int choice;
-    cout << "Выберите КС для редактирования (1-" << stations.size() << "): ";
-    while (!(cin >> choice) || choice < 1 || choice > stations.size()) {
-        cout << "Неверный выбор! Введите число от 1 до " << stations.size() << ": ";
+    cout << "Диаметр: ";
+    // Проверка корректности ввода диаметра
+    while (!(cin >> pipe.diameter) || (pipe.diameter < 0) || (cin.peek() != '\n')) {
+        cout << "Ошибка: введите положительное число: ";
         cin.clear();
-        cin.ignore(10000, '\n');
+        cin.ignore(100, '\n');
     }
 
-    return choice - 1;  // Возвращаем индекс выбранной КС
+    cout << "Статус (0 - в ремонте, 1 - работает): ";
+    // Проверка корректности ввода статуса
+    while (!(cin >> pipe.inRepair) || (cin.peek() != '\n')) {
+        cout << "Ошибка: введите 0 или 1: ";
+        cin.clear();
+        cin.ignore(100, '\n');
+    }
 }
 
-// Главная функция программы
+// Функция для изменения статуса ремонта трубы
+void edit_Repair_Pipe(Pipe& pipe) {
+    cout << "Статус (0 - в ремонте, 1 - работает): ";
+    while (!(cin >> pipe.inRepair)) {
+        cout << "Ошибка: введите 0 или 1: ";
+        cin.clear();
+        cin.ignore(100, '\n');
+    }
+}
+
+// Функция проверки, создана ли труба (проверяет не пустое ли имя)
+bool Pipe_created(const Pipe& pipe) {
+    return !pipe.name.empty();
+}
+
+// Функция для ввода данных о компрессорной станции
+void input_CS(CompressorStation& CS) {
+    cout << "Название КС: ";
+    getline(cin >> ws, CS.name);
+    while (CS.name.empty()) {
+        cout << "Ошибка: название не может быть пустым: ";
+        getline(cin, CS.name);
+    }
+
+    cout << "Количество цехов: ";
+    // Проверка что количество цехов положительное
+    while (!(cin >> CS.numberWorkshop) || (CS.numberWorkshop <= 0) || (cin.peek() != '\n')) {
+        cout << "Ошибка: введите положительное число: ";
+        cin.clear();
+        cin.ignore(100, '\n');
+    }
+
+    cout << "Количество рабочих цехов: ";
+    // Проверка что рабочих цехов не больше общего количества
+    while (!(cin >> CS.workingWorkshop) || (CS.workingWorkshop < 0) || (CS.workingWorkshop > CS.numberWorkshop) || (cin.peek() != '\n')) {
+        cout << "Ошибка: должно быть от 0 до " << CS.numberWorkshop << ": ";
+        cin.clear();
+        cin.ignore(100, '\n');
+    }
+
+    cout << "Класс станции (1-5): ";
+    // Проверка что класс в диапазоне от 1 до 5
+    while (!(cin >> CS.classWorkshop) || (CS.classWorkshop < 1) || (CS.classWorkshop > 5) || (cin.peek() != '\n')) {
+        cout << "Ошибка: введите число от 1 до 5: ";
+        cin.clear();
+        cin.ignore(100, '\n');
+    }
+}
+
+// Функция для редактирования компрессорной станци
+void edit_CS(CompressorStation& CS) {
+    int n;
+
+    while (true) {
+        cout << "Запуск цеха (1), остановка цеха (-1): ";
+        while (!(cin >> n) || (n != 1 && n != -1)) {
+            cout << "Ошибка: введите 1 или -1: ";
+            cin.clear();
+            cin.ignore(100, '\n');
+        }
+
+        if ((CS.workingWorkshop + n >= 0) && (CS.workingWorkshop + n) <= CS.numberWorkshop) {
+            CS.workingWorkshop += n;  // Изменение количества рабочих цехов
+            break;
+        }
+
+        cout << "Ошибка: невозможно выполнить операцию\n";
+    }
+
+    cout << "Количество рабочих цехов: " << CS.workingWorkshop << endl;
+}
+
+// Функция проверки, создана ли компрессорная станция
+bool StationCreated(const CompressorStation& CS) {
+    return !CS.name.empty();
+}
+
+// Функция для просмотра информации о трубе
+void view_Object_1(Pipe& pipe) {
+    if (Pipe_created(pipe)) {
+        cout << "\n === Труба === \n";
+        cout << "Название: " << pipe.name << ", Длина: " << pipe.length
+            << ", Диаметр: " << pipe.diameter << ", В ремонте?: " << (pipe.inRepair ? "Нет" : "Да") << endl;
+    }
+    else cout << "\n Труба не создана \n";
+}
+
+// Функция для просмотра информации о компрессорной станции
+void view_Object_2(CompressorStation& CS) {
+    if (StationCreated(CS)) {
+        cout << "\n == Компрессорная станция == \n";
+        cout << "Название: " << CS.name << ", Всего цехов: " << CS.numberWorkshop
+            << ", Рабочих цехов: " << CS.workingWorkshop << ", Класс станции: " << CS.classWorkshop << endl;
+    }
+    else cout << "\n КС не создана \n";
+}
+
+// Функция отображения главного меню программы
+void display_Menu() {
+    cout << "\n=== Меню управления трубопроводом ===\n";
+    cout << "1. Добавить трубу\n";
+    cout << "2. Добавить компрессорную станцию\n";
+    cout << "3. Просмотр всех объектов\n";
+    cout << "4. Редактировать трубу\n";
+    cout << "5. Редактировать компрессорную станцию\n";
+    cout << "6. Сохранить данные\n";
+    cout << "7. Загрузить данные\n";
+    cout << "0. Выход\n";
+    cout << "Выберите действие: ";
+}
+
+// Функция сохранения данных о трубе в файл
+void save_Pipe_to_File(const Pipe& pipe, ofstream& file) {
+    if (Pipe_created(pipe)) {
+        file << "== Труба ==\n";
+        file << pipe.name << "\n";
+        file << pipe.length << "\n";
+        file << pipe.diameter << "\n";
+        file << pipe.inRepair << "\n";
+    }
+}
+
+// Функция сохранения данных о компрессорной станции в файл
+void save_CS_to_File(const CompressorStation& CS, ofstream& file) {
+    if (StationCreated(CS)) {
+        file << "== КС ==\n";
+        file << CS.name << "\n";
+        file << CS.numberWorkshop << "\n";
+        file << CS.workingWorkshop << "\n";
+        file << CS.classWorkshop << "\n";
+    }
+}
+
+// Функция загрузки данных о трубе из файла
+void load_Pipe_from_File(Pipe& pipe, ifstream& file) {
+    getline(file >> ws, pipe.name);
+    file >> pipe.length;
+    file >> pipe.diameter;
+    file >> pipe.inRepair;
+}
+
+// Функция загрузки данных о компрессорной станции из файла
+void load_CS_from_File(CompressorStation& CS, ifstream& file) {
+    getline(file >> ws, CS.name);
+    file >> CS.numberWorkshop;
+    file >> CS.workingWorkshop;
+    file >> CS.classWorkshop;
+}
+
 int main() {
+    // Установка русской кодировки для консоли
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    vector<Pipe> pipes;                    // Вектор для хранения всех труб
-    vector<CompressorStation> stations;    // Вектор для хранения всех КС
-    int choice;                            // Переменная для выбора пункта меню
+    Pipe pipe;  // Создание трубы
+    CompressorStation CS;  // Создание компрессорной станции
+    int choice;  // Выбора пункта меню
 
-    // Главный цикл программы
-    while (true) {
-        cout << "\n1. Добавить трубу\n2. Добавить КС\n3. Просмотр всех объектов\n4. Редактировать трубу\n5. Редактировать КС\n6. Сохранить\n7. Загрузить\n0. Выход\nВыберите: ";
-        cin >> choice;
+    do {
+        display_Menu();  // Показ меню
 
-        // Обработка выбора пользователя
-        switch (choice) {
-        case 1: {
-            // Добавление новой трубы
-            Pipe newPipe;
-            newPipe.input();
-            pipes.push_back(newPipe);
-            break;
-        }
-        case 2: {
-            // Добавление новой КС
-            CompressorStation newStation;
-            newStation.input();
-            stations.push_back(newStation);
-            break;
-        }
-        case 3: {
-            // Все трубы
-            cout << "\n--- Трубы ---" << endl;
-            if (pipes.empty()) {
-                cout << "Трубы отсутствуют" << endl;
-            }
-            else {
-                // Вывод всех труб
-                for (int i = 0; i < pipes.size(); i++) {
-                    cout << i + 1 << ". ";
-                    pipes[i].display();
-                }
-            }
-
-            cout << "\n--- КС ---" << endl;
-            if (stations.empty()) {
-                cout << "КС отсутствуют" << endl;
-            }
-            else {
-                // Вывод всех КС
-                for (int i = 0; i < stations.size(); i++) {
-                    cout << i + 1 << ". ";
-                    stations[i].display();
-                }
-            }
-            break;
-        }
-        case 4: {
-            // Редактирование существующей трубы
-            int pipeIndex = selectPipe(pipes);
-            if (pipeIndex != -1) {
-                cout << "Редактирование трубы:" << endl;
-                pipes[pipeIndex].input();
-                cout << "Труба успешно отредактирована!" << endl;
-            }
-            break;
-        }
-        case 5: {
-            // Редактирование существующей КС
-            int stationIndex = selectStation(stations);
-            if (stationIndex != -1) {
-                cout << "Редактирование КС:" << endl;
-                stations[stationIndex].input();
-                cout << "КС успешно отредактирована!" << endl;
-            }
-            break;
-        }
-        case 6:
-            // Сохранение данных в файл
-            saveToFile(pipes, stations);
-            break;
-        case 7:
-            // Загрузка данных из файла
-            loadFromFile(pipes, stations);
-            break;
-        case 0:
-            // Выход из программы
-            return 0;
-        default:
-            // Обработка неверного выбора в меню
-            cout << "Неверный выбор!" << endl;
+        // Проверка корректности ввода для меню
+        while (!(cin >> choice) || (choice < 0 || choice > 7) || (cin.peek() != '\n')) {
+            cout << "Ошибка: введите число от 0 до 7: ";
             cin.clear();
-            cin.ignore(10000, '\n');
+            cin.ignore(100, '\n');
         }
-    }
+
+        // Обработка выбора
+        switch (choice) {
+        case 1:
+            input_pipe(pipe);
+            cout << "Труба успешно добавлена \n";
+            break;
+
+        case 2:
+            input_CS(CS);
+            cout << "Компрессорная станция успешно добавлена \n";
+            break;
+
+        case 3:
+            view_Object_1(pipe);
+            view_Object_2(CS);
+            break;
+
+        case 4:
+            if (Pipe_created(pipe))
+                edit_Repair_Pipe(pipe);
+            else
+                cout << "== Сначала создайте трубу ===\n";
+            break;
+
+        case 5:
+            if (StationCreated(CS))
+                edit_CS(CS);
+            else
+                cout << " == Сначала создайте компрессорную станцию ==\n";
+            break;
+
+        case 6: {  // Сохранение данных в файл
+            ofstream file("data.txt");
+            if (file.is_open()) {
+                save_Pipe_to_File(pipe, file);
+                save_CS_to_File(CS, file);
+                file.close();
+                cout << "\nДанные сохранены в файл 'data.txt'\n";
+            }
+            else {
+                cout << "Ошибка: не удалось создать файл\n";
+            }
+            break;
+        }
+
+        case 7: {  // Загрузка данных из файла
+            ifstream file("data.txt");
+            if (file.is_open()) {
+                string line;
+                // Чтение файла построчно
+                while (getline(file, line)) {
+                    if (line == "== Труба ==") {
+                        load_Pipe_from_File(pipe, file);
+                    }
+                    else if (line == "== КС ==") {
+                        load_CS_from_File(CS, file);
+                    }
+                }
+                file.close();
+                cout << "\nДанные загружены из файла\n";
+            }
+            else {
+                cout << "Ошибка: не удалось открыть файл для чтения\n";
+            }
+            break;
+        }
+
+        case 0:
+            cout << "Выход из программы\n";
+            break;
+        }
+
+    } while (choice != 0);
+
+    return 0;
 }
