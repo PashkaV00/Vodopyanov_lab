@@ -12,7 +12,6 @@ struct Pipe {
     int diameter;
     bool inRepair;
 
-    Pipe() : name(""), length(0.0), diameter(0), inRepair(false) {}
 };
 
 // Хранения данных о компрессорной станции
@@ -159,7 +158,7 @@ void view_Object_2(CompressorStation& CS) {
 // Функция отображения главного меню программы
 void display_Menu() {
     cout << "\n=== Меню управления трубопроводом ===\n";
-    cout << "1. Добавить трубу\n";
+    cout << "1. Добавить трубуоликпацлуориало\n";
     cout << "2. Добавить компрессорную станцию\n";
     cout << "3. Просмотр всех объектов\n";
     cout << "4. Редактировать трубу\n";
